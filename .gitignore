@@ -25,8 +25,12 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-# 数据文件夹
-data/ 
+
+# 忽略 data 目录
+/data/
+
+# 忽略 Jupyter Notebook 文件
+航迹模拟.ipynb
 
 # PyInstaller
 *.manifest
