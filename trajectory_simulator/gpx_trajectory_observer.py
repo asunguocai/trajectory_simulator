@@ -16,15 +16,17 @@ class GPXTrajectoryObserver(TrajectoryObserver):
     METADATA_DESCRIPTION_KEY = "metadata_description"
     METADATA_AUTHOR_KEY = "metadata_author"
 
-    def __init__(self, file_path: str, config: Dict):
+    def __init__(self, file_path: str, config: Dict, elevation_provider=None):
         """
         初始化GPX轨迹观察者
         
         :param file_path: 输出的GPX文件路径
         :param config: 配置字典，包含GPX文件的元数据信息
+        :param elevation_provider: 高程数据提供者
         """
         self.file_path = file_path
         self.config = config
+        self.elevation_provider = elevation_provider
         self.initial_time = None
 
         # 创建GPX根元素，设置版本和创建者
@@ -55,6 +57,7 @@ class GPXTrajectoryObserver(TrajectoryObserver):
 
     def on_stop_recording(self):
         """停止记录时的操作，添加扩展信息并写入GPX文件"""
+        self._add_elevations()
         self._add_extensions()
         tree = ET.ElementTree(self.root)
         tree.write(self.file_path, encoding="utf-8", xml_declaration=True)
@@ -67,20 +70,27 @@ class GPXTrajectoryObserver(TrajectoryObserver):
         """
         wgs84_position = data[WGS84_POSITION_KEY]
         timestamp = datetime.fromtimestamp(data[TIMESTAMP_KEY], tz=timezone.utc)
-        elevation = data[ALTITUDE_KEY]
 
-        # 创建轨迹点元素
+        # 创建轨迹点元素，但暂不添加高程信息
         trkpt = ET.SubElement(self.segment, "trkpt", lat=str(wgs84_position.y), lon=str(wgs84_position.x))
-        ET.SubElement(trkpt, "ele").text = str(elevation)
         ET.SubElement(trkpt, "time").text = timestamp.isoformat()
 
         # 记录轨迹点信息
-        self.trajectory.append((wgs84_position, timestamp, elevation))
+        self.trajectory.append((wgs84_position, timestamp, trkpt))
 
         # 更新开始和结束时间
         if self.start_time is None:
             self.start_time = timestamp
         self.end_time = timestamp
+
+    def _add_elevations(self):
+        """在记录结束后统一添加高程信息"""
+        if self.elevation_provider:
+            lon_lat_list = [(point[0].x, point[0].y) for point in self.trajectory]
+            elevations = self.elevation_provider.batch_get_elevation(lon_lat_list)
+            
+            for (_, _, trkpt), elevation in zip(self.trajectory, elevations):
+                ET.SubElement(trkpt, "ele").text = str(elevation)
 
     def _add_extensions(self):
         """添加扩展信息，包括开始时间、结束时间、总距离和面积"""
