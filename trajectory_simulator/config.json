@@ -1,0 +1,38 @@
+{
+    "simulation": {
+      "time_step": 1.0,
+      "tolerance": 0.5,
+      "closing_distance": 0.2,
+      "max_attempts": 3
+    },
+    "gps": {
+      "device_type": "advanced",
+      "initial_accuracy": 5.0,
+      "initial_signal_strength_min": 0.8,
+      "initial_signal_strength_max": 1.0,
+      "min_accuracy": 2.5,
+      "max_accuracy": 12.0,
+      "min_signal_strength": 0.2,
+      "sampling_distance": 5.0,
+      "coordinate_system": "EPSG:4510",
+      "time_unit": "second"
+    },
+    "person": {
+      "movement_strategy": "realistic",
+      "deviation_probability": 0.4,
+      "max_deviation_angle": 23,
+      "speed_range": [0.8, 1.5],
+      "correction_threshold": 5.0,
+      "correction_factor": 0.5
+    },
+    "trajectory": {
+      "area_threshold": 0.9
+    },
+    "terrain": {
+      "extra_points": 5,
+      "max_deviation": 10.0
+    },
+    "elevation": {
+      "provider": "default"
+    }
+  }
