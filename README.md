@@ -72,39 +72,36 @@ print(f"生成的轨迹点数：{len(trajectory)}")
 ```json
 {
   "simulation": {
-    "time_step": 1.0,              // 模拟的时间步长（秒）
-    "tolerance": 0.5,              // 轨迹生成的容差（米）
-    "closing_distance": 0.2,       // 最后一条边距离终点的距离容差（米）
-    "max_attempts": 3              // 最大模拟尝试次数
+    "time_step": 1.0,   
+    "tolerance": 0.5,
+    "closing_distance": 0.2,    
+    "max_attempts": 3        
   },
   "gps": {
-    "device_type": "advanced",     // GPS设备类型，目前支持"advanced"
-    "initial_accuracy": 5.0,       // 初始GPS精度（米）
-    "initial_signal_strength_min": 0.8,  // 初始最小信号强度（0-1）
-    "initial_signal_strength_max": 1.0,  // 初始最大信号强度（0-1）
-    "min_accuracy": 2.5,           // 最小GPS精度（米）
-    "max_accuracy": 12.0,          // 最大GPS精度（米）
-    "min_signal_strength": 0.2,    // 最小信号强度（0-1）
-    "sampling_distance": 5.0,      // GPS采样距离（米）
-    "coordinate_system": "EPSG:4510",  // 使用的坐标系统
-    "time_unit": "second"          // 时间单位，可选"second"、"millisecond"、"minute"、"hour"
+    "device_type": "advanced",    
+    "initial_accuracy": 5.0,      
+    "initial_signal_strength_min": 0.8, 
+    "initial_signal_strength_max": 1.0, 
+    "min_accuracy": 2.5,          
+    "max_accuracy": 12.0,         
+    "min_signal_strength": 0.2,   
+    "sampling_distance": 5.0,     
+    "coordinate_system": "EPSG:4510",  
+    "time_unit": "second"         
   },
   "person": {
-    "movement_strategy": "realistic",  // 移动策略，可选"realistic"或"simple"
-    "deviation_probability": 0.4,   // 偏航概率（0-1）
-    "max_deviation_angle": 23,      // 最大偏航角度（度）
-    "speed_range": [0.8, 1.5],      // 速度范围（米/秒）
-    "correction_threshold": 5.0,    // 航向修正阈值（米）
-    "correction_factor": 0.5        // 航向修正因子（0-1）
-    // 注意：correction_factor越大，修正越强烈
+    "movement_strategy": "realistic", 
+    "deviation_probability": 0.4,  
+    "max_deviation_angle": 23,     
+    "speed_range": [0.8, 1.5],     
+    "correction_threshold": 5.0,   
+    "correction_factor": 0.5        
   },
   "trajectory": {
-    "area_threshold": 0.9           // 轨迹覆盖面积阈值（0-1）
-    // 生成的轨迹面积与原多边形面积的比例需大于此值
+    "area_threshold": 0.9           
   },
   "elevation": {
-    "provider": "default"           // 高程数据提供者，可选"default"或"arcgis"
-    // 如果选择"arcgis"，需要额外配置ArcGIS相关参数
+    "provider": "default"           
   }
 }
 ```
@@ -138,6 +135,7 @@ print(f"生成的轨迹点数：{len(trajectory)}")
 
 5. elevation
    - provider: 选择高程数据的来源。"default"为平面（高程为0），"arcgis"使用ArcGIS数据。
+   - provider_params: 根据不同的provider，设置不同的参数。Dict类型。
 
 注意：这些参数会显著影响模拟的结果和性能。根据具体需求和场景调整这些参数可以获得更好的模拟效果。
 
@@ -168,6 +166,58 @@ class CustomObserver(TrajectoryObserver):
 custom_observer = CustomObserver()
 simulator.add_observer(custom_observer)
 ```
+
+## 使用GPX轨迹观察者
+
+轨迹模拟器提供了一个内置的GPX轨迹观察者，可以将模拟生成的轨迹保存为标准的GPX文件格式。以下是使用GPX轨迹观察者的示例：
+
+```python
+from trajectory_simulator import TrajectorySimulator, Config, GPXTrajectoryObserver
+from shapely.geometry import Polygon, Point
+import time
+
+# 加载配置
+config = Config()
+config.load('config.json')
+
+# 创建模拟器
+simulator = TrajectorySimulator(config)
+
+# 创建GPX轨迹观察者
+gpx_observer = GPXTrajectoryObserver("output.gpx", config)
+
+# 将GPX观察者添加到模拟器
+simulator.add_observer(gpx_observer)
+
+# 定义多边形区域
+polygon = Polygon([(0, 0), (0, 100), (100, 100), (100, 0)])
+
+# 设置起始时间和位置
+start_time = time.time()
+start_position = Point(0, 0)
+
+# 执行模拟
+trajectory = simulator.simulate(start_time, start_position, polygon)
+
+print(f"生成的轨迹点数：{len(trajectory)}")
+print(f"轨迹已保存到 output.gpx")
+```
+
+这个示例展示了如何创建一个GPXTrajectoryObserver实例，并将其添加到模拟器中。模拟完成后，轨迹数据将自动保存为GPX文件。
+
+GPXTrajectoryObserver的构造函数接受两个参数：
+
+1. 输出GPX文件的路径
+2. 配置对象（用于获取元数据信息）
+
+GPX文件包含以下信息：
+
+- 轨迹点的经纬度坐标
+- 每个点的时间戳
+- 高程信息（如果可用）
+- 元数据（如创建时间、轨迹名称等）
+
+生成的GPX文件可以在各种GIS软件和在线地图服务中导入和可视化，方便进行进一步的分析和展示。
 
 ## 高级用法
 
