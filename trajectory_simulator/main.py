@@ -1,8 +1,8 @@
 from shapely.geometry import Polygon
-from config import Config
+from trajectory_simulator.config.config import Config
 from trajectory_simulator import TrajectorySimulator, ConsoleTrajectoryObserver, FileTrajectoryObserver
 from trajectory_simulator import POSITION_KEY
-from gpx_trajectory_observer import GPXTrajectoryObserver
+from trajectory_simulator.observers.gpx_trajectory_observer import GPXTrajectoryObserver
 import time
 import matplotlib.pyplot as plt
 from shapely.geometry import LineString, Point

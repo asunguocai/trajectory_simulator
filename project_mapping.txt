@@ -1,0 +1,9 @@
+e:\scripts\航迹模拟\data\C2022年伊图里河林业有限公司温河分公司人工造林_trajectory: A
+e:\scripts\航迹模拟\data\C2022年占地植被恢复_重点区域绿化_trajectory: B
+e:\scripts\航迹模拟\data\C2022本土占地植被恢复_trajectory: C
+e:\scripts\航迹模拟\data\C伊东林场困难立地植被恢复36dot1110亩_trajectory: D
+e:\scripts\航迹模拟\data\C巴布根21年3林班重点绿化_trajectory: E
+e:\scripts\航迹模拟\data\C巴布根49林班重点绿化_trajectory: F
+e:\scripts\航迹模拟\data\C巴布根59林班重点绿化_trajectory: G
+e:\scripts\航迹模拟\data\C巴布根8林班重点绿化_trajectory: H
+e:\scripts\航迹模拟\data\C莫那根27林班_trajectory: I

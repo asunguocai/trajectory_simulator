@@ -13,17 +13,19 @@
       "min_accuracy": 2.5,
       "max_accuracy": 12.0,
       "min_signal_strength": 0.2,
-      "sampling_distance": 5.0,
+      "sampling_strategy": "hybrid",
+      "sampling_interval": 1.0,
+      "sampling_distance": 5,
       "coordinate_system": "EPSG:4510",
       "time_unit": "second"
     },
     "person": {
       "movement_strategy": "realistic",
-      "deviation_probability": 0.4,
-      "max_deviation_angle": 23,
-      "speed_range": [0.8, 1.5],
-      "correction_threshold": 5.0,
-      "correction_factor": 0.5
+      "deviation_probability": 0.8,
+      "max_deviation_angle": 30,
+      "speed_range": [0.7, 1.2],
+      "correction_threshold": 10.0,
+      "correction_factor": 0.3
     },
     "trajectory": {
       "area_threshold": 0.9

@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Any, Union, List, Tuple
 import time
-from .elevation_provider import ElevationProvider
+from ..terrain.elevation_provider import ElevationProvider
 
 class Config:
     """
@@ -26,6 +26,8 @@ class Config:
     GPS_MAX_ACCURACY_KEY = "gps.max_accuracy"
     GPS_MIN_SIGNAL_STRENGTH_KEY = "gps.min_signal_strength"
     GPS_SAMPLING_DISTANCE_KEY = "gps.sampling_distance"
+    GPS_SAMPLING_STRATEGY_KEY = "gps.sampling_strategy"
+    GPS_SAMPLING_INTERVAL_KEY = "gps.sampling_interval"
 
     # 人员移动策略
     PERSON_MOVEMENT_STRATEGY_KEY = "person.movement_strategy"
@@ -201,7 +203,7 @@ class Config:
         provider_params = self.get(self.ELEVATION_PROVIDER_PARAMS_KEY, {})
 
         if provider_type == "arcgis":
-            from .arcgis_elevation_provider import ArcgisElevationProvider
+            from ..terrain.arcgis_elevation_provider import ArcgisElevationProvider
             return ArcgisElevationProvider(provider_params.get("dem_path_list", []))
         else:
             # 默认使用一个简单的高程提供者，总是返回0米高程

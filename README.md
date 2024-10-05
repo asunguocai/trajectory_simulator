@@ -4,8 +4,24 @@
 
 ## 更新日志
 
+- v1.0.2
+  - 更新了采样模式，增加了基于时间和混合模式的采样策略。
+  - 优化了包结构，提高了代码的组织性和可维护性。
+
 - v1.0.1
   - `GPXTrajectoryObserver` 支持 `elevation_provider` ，航迹生成后，统一添加高程数据。
+
+## 包结构
+
+轨迹模拟器的包结构已经优化，主要包括以下模块：
+
+- `trajectory_simulator/`
+  - `config/`: 配置相关模块
+  - `gps/`: GPS设备模拟相关模块
+  - `observers/`: 观察者模式实现模块
+  - `person/`: 人员移动模拟模块
+  - `terrain/`: 地形和高程数据处理模块
+  - `trajectory_simulator.py`: 主模拟器类
 
 ## 实现思路
 
@@ -90,7 +106,9 @@ print(f"生成的轨迹点数：{len(trajectory)}")
     "min_accuracy": 2.5,          
     "max_accuracy": 12.0,         
     "min_signal_strength": 0.2,   
-    "sampling_distance": 5.0,     
+    "sampling_strategy": "hybrid",
+    "sampling_interval": 1.0,
+   "sampling_distance": 5,  
     "coordinate_system": "EPSG:4510",  
     "time_unit": "second"         
   },
@@ -123,9 +141,11 @@ print(f"生成的轨迹点数：{len(trajectory)}")
    - device_type: 目前仅支持"advanced"，未来可能添加其他类型。
    - initial_accuracy 到 max_accuracy: 控制GPS精度的范围。
    - initial_signal_strength_min/max 和 min_signal_strength: 控制GPS信号强度的范围。
-   - sampling_distance: 控制GPS点的采样间隔。
    - coordinate_system: 指定使用的坐标系统，确保与输入数据一致。
    - time_unit: 指定时间单位，影响速度和时间步长的解释。
+   - sampling_strategy: 采样策略，可选 "distance"（基于距离）、"time"（基于时间）或 "hybrid"（混合模式）。
+   - sampling_distance: 当使用距离采样策略时，控制GPS点的采样间隔。
+   - sampling_interval: 当使用时间采样策略时，控制GPS点的采样时间间隔（秒）。
 
 3. person
    - movement_strategy: "realistic"考虑更多现实因素，"simple"为简化模型。

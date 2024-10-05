@@ -1,147 +1,16 @@
 from typing import List, Dict
-from shapely.geometry import Point, Polygon, LineString
-from .config import Config
-from .person import Person, PersonFactory, PersonObserver
-from .gps_device import GPSDevice, GPSDeviceFactory, POSITION_KEY, ALTITUDE_KEY, TIMESTAMP_KEY, HEADING_KEY, ACCURACY_KEY, GPSObserver
+from shapely.geometry import Point, Polygon
+from .config.config import Config
+from .person.person import Person, PersonFactory
+from .gps.gps_device import GPSDevice
+from .gps.gps_device_factory import GPSDeviceFactory
+from .gps.gps_device import POSITION_KEY, ALTITUDE_KEY, TIMESTAMP_KEY, HEADING_KEY, ACCURACY_KEY
+from .gps.gps_observer import GPSObserver
+from .observers.trajectory_observer import TrajectoryObserver
+from .observers.console_trajectory_observer import ConsoleTrajectoryObserver
+# 移除 GPXTrajectoryObserver 的导入
+from .inspection_task import InspectionTask
 import time
-
-class InspectionTask:
-    """巡检任务类，管理巡检路径和目标点"""
-
-    def __init__(self, polygon: Polygon, config: Config):
-        """
-        初始化巡检任务
-        
-        :param polygon: 巡检区域多边形
-        :param config: 配置对象
-        """
-        self.original_polygon = polygon
-        self.config = config
-        self.target_index = 0
-        self.current_edge = None
-        self.valid_vertices = list(polygon.exterior.coords)
-        self.update_current_edge()
-
-    def update_current_edge(self):
-        """更新当前行进边"""
-        start = Point(self.valid_vertices[self.target_index])
-        end = Point(self.valid_vertices[(self.target_index + 1) % len(self.valid_vertices)])
-        self.current_edge = LineString([start, end])
-
-    def get_next_target(self) -> Point:
-        """
-        获取下一个目标点
-        
-        :return: 下一个目标点，如果巡检完成则返回None
-        """
-        if self.target_index >= len(self.valid_vertices) - 1:
-            return None
-        
-        target = Point(self.valid_vertices[self.target_index + 1])
-        return target
-    
-    def is_on_current_edge(self, point: Point, tolerance: float = 1e-6) -> bool:
-        """
-        检查点是否在当前行进边的终点或其延长线上
-        
-        :param point: 要检查的点
-        :param tolerance: 容差值
-        :return: 是否在当前行进边的终点或其延长线上
-        """
-        end_point = Point(self.current_edge.coords[-1])
-        if self.target_index == len(self.valid_vertices) - 1:  # 如果是最后一条边
-            print(f"最后一条边，距离终点距离: {point.distance(end_point)}")
-            closing_distance = self.config.get(Config.CLOSING_DISTANCE_KEY, tolerance)
-            return point.distance(end_point) < closing_distance
-        return point.distance(end_point) < tolerance
-
-    def move_to_next_target(self) -> bool:
-        """
-        移动到下一个目标点
-        
-        :return: 是否成功移动到下一个目标点
-        """
-        self.target_index += 1
-        if self.target_index >= len(self.valid_vertices) - 1:
-            return False
-        self.update_current_edge()
-        return True
-
-    def is_complete(self) -> bool:
-        """
-        检查巡检是否完成
-        
-        :return: 巡检是否完成
-        """
-        return self.target_index >= len(self.valid_vertices) - 1
-
-    def get_polygon(self) -> Polygon:
-        """
-        获取处理后的多边形
-        
-        :return: 处理后的多边形
-        """
-        return self.original_polygon
-
-class TrajectoryObserver:
-    """轨迹观察者抽象基类"""
-
-    def update(self, event: str, data: Dict = None):
-        if event == "start_recording":
-            self.on_start_recording()
-        elif event == "stop_recording":
-            self.on_stop_recording()
-        elif event == "pause_recording":
-            self.on_pause_recording()
-        elif event == "resume_recording":
-            self.on_resume_recording()
-        elif event == "update":
-            self.on_data_update(data)
-        elif event == "time_changed":
-            self.on_time_changed(data)
-        elif event == "position_changed":
-            self.on_position_changed(data)
-        elif event == "simulation_attempt":
-            self.on_simulation_attempt(data)
-        elif event == "simulation_retry":
-            self.on_simulation_retry(data)
-        elif event == "simulation_success":
-            self.on_simulation_success(data)
-        elif event == "simulation_failure":
-            self.on_simulation_failure(data)
-
-    def on_start_recording(self):
-        pass
-
-    def on_stop_recording(self):
-        pass
-
-    def on_pause_recording(self):
-        pass
-
-    def on_resume_recording(self):
-        pass
-
-    def on_data_update(self, data: Dict):
-        pass
-    
-    def on_time_changed(self, new_time: float):
-        pass
-
-    def on_position_changed(self, new_position: Point):
-        pass
-
-    def on_simulation_attempt(self, data: Dict):
-        pass
-
-    def on_simulation_retry(self, data: Dict):
-        pass
-
-    def on_simulation_success(self, data: Dict):
-        pass
-
-    def on_simulation_failure(self, data: Dict):
-        pass
 
 class TrajectorySimulator(GPSObserver):
     """轨迹模拟器类"""
@@ -281,7 +150,28 @@ class TrajectorySimulator(GPSObserver):
 
     def notify_observers(self, event: str, data=None):
         for observer in self.observers:
-            observer.update(event, data)
+            if event == "start_recording":
+                observer.on_start_recording()
+            elif event == "stop_recording":
+                observer.on_stop_recording()
+            elif event == "pause_recording":
+                observer.on_pause_recording()
+            elif event == "resume_recording":
+                observer.on_resume_recording()
+            elif event == "update":
+                observer.on_data_update(data)
+            elif event == "time_changed":
+                observer.on_time_changed(data["new_time"])
+            elif event == "position_changed":
+                observer.on_position_changed(data["new_position"])
+            elif event == "simulation_attempt":
+                observer.on_simulation_attempt(data)
+            elif event == "simulation_retry":
+                observer.on_simulation_retry(data)
+            elif event == "simulation_success":
+                observer.on_simulation_success(data)
+            elif event == "simulation_failure":
+                observer.on_simulation_failure(data)
 
     def on_gps_update(self, data: Dict):
         """处理 GPS 更新事件"""
@@ -302,75 +192,3 @@ class TrajectorySimulator(GPSObserver):
     def on_gps_resume_recording(self):
         """处理 GPS 恢复记录事件"""
         self.notify_observers("resume_recording")
-
-
-class ConsoleTrajectoryObserver(TrajectoryObserver):
-    """将轨迹输出到控制台的观察者"""
-
-    def on_start_recording(self):
-        print("开始记录轨迹")
-
-    def on_stop_recording(self):
-        print("停止记录轨迹")
-
-    def on_pause_recording(self):
-        print("暂停记录轨迹")
-
-    def on_resume_recording(self):
-        print("恢复记录轨迹")
-
-    def on_data_update(self, data: Dict):
-        position = data[POSITION_KEY]
-        print(f"当前位置: ({position.x}, {position.y}), 高程: {data[ALTITUDE_KEY]}, 时间: {data[TIMESTAMP_KEY]}")
-
-    def on_simulation_attempt(self, data: Dict):
-        print(f"开始第 {data['attempt']}/{data['max_attempts']} 次模拟尝试")
-
-    def on_simulation_retry(self, data: Dict):
-        print(f"第 {data['attempt']}/{data['max_attempts']} 次模拟失败，准备重试")
-
-    def on_simulation_success(self, data: Dict):
-        print(f"模拟成功，用时 {data['attempt']} 次尝试")
-
-    def on_simulation_failure(self, data: Dict):
-        print(f"模拟失败，达到最大尝试次数 {data['max_attempts']}")
-
-class FileTrajectoryObserver(TrajectoryObserver):
-    """将轨迹保存到文件的观察者"""
-
-    def __init__(self, filename: str):
-        self.filename = filename
-        with open(self.filename, 'w') as f:
-            f.write("event,x,y,altitude,timestamp,heading,accuracy\n")
-
-    def on_start_recording(self):
-        self._write_event("start_recording")
-
-    def on_stop_recording(self):
-        self._write_event("stop_recording")
-
-    def on_pause_recording(self):
-        self._write_event("pause_recording")
-
-    def on_resume_recording(self):
-        self._write_event("resume_recording")
-
-    def on_data_update(self, data: Dict):
-        position = data[POSITION_KEY]
-        self._write_event("update", position.x, position.y, data[ALTITUDE_KEY], data[TIMESTAMP_KEY], data[HEADING_KEY], data[ACCURACY_KEY])
-
-    def on_simulation_attempt(self, data: Dict):
-        self._write_event("simulation_attempt", attempt=data['attempt'], max_attempts=data['max_attempts'])
-
-    def on_simulation_retry(self, data: Dict):
-        self._write_event("simulation_retry", attempt=data['attempt'], max_attempts=data['max_attempts'])
-
-    def on_simulation_success(self, data: Dict):
-        self._write_event("simulation_success", attempt=data['attempt'])
-
-    def on_simulation_failure(self, data: Dict):
-        self._write_event("simulation_failure", max_attempts=data['max_attempts'])
-
-    def _write_event(self, event: str, x: float = None, y: float = None, altitude: float = None, timestamp: float = None, heading: float = None, accuracy: float = None):
-        with open(self.filename, 'a') as f:
-            f.write(f"{event},{x},{y},{altitude},{timestamp},{heading},{accuracy}\n")

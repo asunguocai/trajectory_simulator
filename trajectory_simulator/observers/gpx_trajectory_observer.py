@@ -2,8 +2,8 @@ from typing import Dict
 import xml.etree.ElementTree as ET
 from datetime import datetime, timezone, timedelta
 from shapely.geometry import Point, Polygon
-from .trajectory_simulator import TrajectoryObserver
-from .gps_device import POSITION_KEY, ALTITUDE_KEY, TIMESTAMP_KEY, WGS84_POSITION_KEY
+from ..trajectory_simulator import TrajectoryObserver
+from ..gps.gps_device import POSITION_KEY, ALTITUDE_KEY, TIMESTAMP_KEY, WGS84_POSITION_KEY
 
 
 class GPXTrajectoryObserver(TrajectoryObserver):

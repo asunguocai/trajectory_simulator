@@ -3,8 +3,8 @@ import random
 import math
 from typing import List,Dict
 from shapely.geometry import Point, Polygon
-from .config import Config
-from .gps_device import GPSDevice
+from ..config.config import Config
+from ..gps.gps_device import GPSDevice
 
 class PersonObserver(ABC):
     @abstractmethod
